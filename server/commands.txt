@@ -1,5 +1,4 @@
-
-%pip install --quiet --upgrade langchain-text-splitters langchain-community langgraph
+pip install --quiet --upgrade langchain-text-splitters langchain-community langgraph
 
 pip install -qU langchain-chroma
 

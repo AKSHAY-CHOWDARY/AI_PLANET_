@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,22 +8,15 @@ import shutil
 from typing import List
 from my_rag import MyRAGAgent
 import logging
-from google.cloud import speech
-import base64
 from dotenv import load_dotenv
-import os, base64
-
+from sqlalchemy.orm import Session
+from database import get_db, engine
+import models
+from auth import get_current_user, verify_google_token, create_access_token, get_or_create_user
+from datetime import timedelta
 
 # Load environment variables
 load_dotenv()
-
-
-creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
-if creds_b64:
-    with open("google-credentials.json", "wb") as f:
-        f.write(base64.b64decode(creds_b64))
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google-credentials.json"
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,13 +28,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS with proper configuration
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure based on your frontend domain in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Mount static files
@@ -61,12 +55,13 @@ else:
         logger.error(f"Failed to initialize RAG Agent: {e}")
         my_rag_agent = None
 
-# Create pdfs directory if it doesn't exist
-pdfs_dir = os.path.join(os.getcwd(), "pdfs")
+# Create PDFs directory if it doesn't exist
+pdfs_dir = os.path.join(os.path.dirname(__file__), "pdfs")
 os.makedirs(pdfs_dir, exist_ok=True)
 logger.info(f"PDFs directory created at: {pdfs_dir}")
 
-class ChatRequest(BaseModel):
+
+class ChatMessage(BaseModel):
     message: str
 
 class ChatResponse(BaseModel):
@@ -84,20 +79,6 @@ class StatusResponse(BaseModel):
     pdfs_directory: str
     documents_loaded: int
 
-class SpeechRequest(BaseModel):
-    audio_data: str  # Base64 encoded audio data
-
-class SpeechResponse(BaseModel):
-    transcript: str
-    status: str = "success"
-
-# Initialize Google Cloud Speech client
-try:
-    speech_client = speech.SpeechClient()
-    logger.info("Google Cloud Speech client initialized successfully")
-except Exception as e:
-    logger.error(f"Failed to initialize Google Cloud Speech client: {e}")
-    speech_client = None
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -107,6 +88,7 @@ async def root():
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse(content="<h1>RAG PDF Chat API</h1><p>Backend server is running. Use the API endpoints to interact with the service.</p>")
+
 
 @app.post("/upload-pdf", response_model=UploadResponse)
 async def upload_pdf(file: UploadFile = File(...)):
@@ -168,8 +150,9 @@ async def upload_pdf(file: UploadFile = File(...)):
             detail=f"Internal server error: {str(e)}"
         )
 
+
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(message: ChatMessage):
     """Chat with the RAG system about uploaded documents"""
     try:
         if my_rag_agent is None:
@@ -178,15 +161,15 @@ async def chat(request: ChatRequest):
                 detail="RAG Agent is not initialized. Please check server configuration."
             )
         
-        if not request.message.strip():
+        if not message.message.strip():
             raise HTTPException(
                 status_code=400,
                 detail="Message cannot be empty"
             )
         
-        logger.info(f"Processing chat request: {request.message[:100]}...")
+        logger.info(f"Processing chat request: {message.message[:100]}...")
         
-        response = my_rag_agent.ask(request.message)
+        response = my_rag_agent.ask(message.message)
         
         logger.info("Chat response generated successfully")
         
@@ -203,6 +186,7 @@ async def chat(request: ChatRequest):
             status_code=500,
             detail=f"Failed to generate response: {str(e)}"
         )
+
 
 @app.get("/status", response_model=StatusResponse)
 async def get_status():
@@ -225,10 +209,12 @@ async def get_status():
             detail=f"Failed to get status: {str(e)}"
         )
 
+
 @app.get("/health")
 async def health_check():
     """Simple health check endpoint"""
     return {"status": "healthy", "service": "RAG PDF Chat API"}
+
 
 @app.delete("/reset")
 async def reset_documents():
@@ -265,12 +251,14 @@ async def reset_documents():
             detail=f"Failed to reset documents: {str(e)}"
         )
 
+
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
     return JSONResponse(
         status_code=404,
         content={"message": "Endpoint not found", "path": str(request.url.path)}
     )
+
 
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc):
@@ -279,6 +267,7 @@ async def internal_error_handler(request: Request, exc):
         status_code=500,
         content={"message": "Internal server error", "detail": "Please try again later"}
     )
+
 
 @app.post("/speech-to-text", response_model=SpeechResponse)
 async def speech_to_text(request: SpeechRequest):
@@ -321,6 +310,7 @@ async def speech_to_text(request: SpeechRequest):
             status_code=500,
             detail=f"Failed to process speech: {str(e)}"
         )
+
 
 if __name__ == "__main__":
     import uvicorn

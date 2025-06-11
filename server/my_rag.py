@@ -32,8 +32,7 @@ class MyRAGAgent:
         self.openai_api_key = openai_api_key
         
         try:
-            # Initialize language model - using gpt-4o as the newest OpenAI model (released May 13, 2024)
-            # Do not change this unless explicitly requested by the user
+            # Initialize language model - using gpt-4o as the newest OpenAI model 
             self.llm = init_chat_model(
                 "gpt-4o-mini", 
                 model_provider="openai", 
