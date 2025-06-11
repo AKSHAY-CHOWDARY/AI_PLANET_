@@ -1,0 +1,12 @@
+
+%pip install --quiet --upgrade langchain-text-splitters langchain-community langgraph
+
+pip install -qU langchain-chroma
+
+pip install -qU "langchain[openai]"
+
+pip install -qU langchain-openai
+
+pip install python-multipart
+
+pip install pypdf
