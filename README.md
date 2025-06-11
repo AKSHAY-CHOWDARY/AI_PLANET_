@@ -1,130 +1,165 @@
-# Chat with PDF
+# 🚀 AI Planet - Interactive PDF Chat Application
 
-**Chat with your PDFs using AI!**  
-[Live Demo → https://ai-planet-chat.onrender.com/](https://ai-planet-chat.onrender.com/)
-
----
-
-## Overview
-
-**Chat with PDF** is a modern web app that lets you upload multiple PDF files and instantly ask questions about their content. It uses advanced Retrieval-Augmented Generation (RAG) with an in-memory vector store and OpenAI’s GPT-4o-mini model for fast, accurate, and context-aware answers.
+Transform your static PDF documents into dynamic conversational experiences with AI-powered question-answering!
 
 ---
 
-## Features
+## 🎯 Overview
 
-- **Upload Multiple PDFs:**  
-  Drag and drop or select several PDF files at once. The system processes all of them together, so you can query across multiple documents seamlessly.
-
-- **AI-Powered Chat:**  
-  Ask any question about your uploaded PDFs. The app uses RAG to efficiently retrieve relevant information and generate helpful, context-aware answers.
-
-- **Lightning-Fast Retrieval:**  
-  RAG with an in-memory vector store ensures your queries are answered quickly, even with large or multiple documents.
-
-- **Modern UI:**  
-  Clean, responsive interface with light/dark mode, real-time status, and easy controls.
-
-- **No Google API Key Required:**  
-  All features work out of the box—just provide your OpenAI API key for local use.
-
-- **Reset & Manage:**  
-  Instantly clear all uploaded documents and chat history with a single click.
+**AI Planet** is a comprehensive full-stack web application that enables users to upload multiple PDF documents and interact with their content through natural language questions. Leveraging state-of-the-art Retrieval-Augmented Generation (RAG) architecture, the system combines efficient document processing, semantic search, and large language models (LLMs) to deliver accurate, context-aware responses. Built with modern technologies, it caters to researchers, students, professionals, and anyone seeking intelligent document analysis.
 
 ---
 
-## How It Works
+## 🌟 Key Features
 
-1. **PDF Upload & Loading:**  
-   Upload one or more PDFs. Each is loaded and its content extracted.
+- **Multi-PDF Upload & Management**  
+  Drag-and-drop interface supporting multiple PDFs, with automatic text extraction and metadata storage.
 
-2. **Document Chunking:**  
-   Text is split into overlapping chunks using a **Recursive Character Text Splitter** (chunk size: 1000, overlap: 200, with smart separators). This preserves context and ensures efficient retrieval.
+- **Semantic Search & Retrieval**  
+  Uses vector embeddings and in-memory vector stores for fast, relevant chunk retrieval.
 
-3. **Embedding & In-Memory Vector Store:**  
-   Each chunk is embedded using OpenAI’s `text-embedding-3-large` model. All vectors are stored in memory for ultra-fast similarity search—no external database needed.
+- **AI-Powered Question Answering**  
+  Contextually answers user questions based on uploaded documents, maintaining conversation history for coherence.
 
-4. **Query & Retrieval:**  
-   When you ask a question, it’s embedded and compared to all document chunks. The top 4 most relevant chunks are retrieved as context.
+- **Source Citation & Transparency**  
+  Responses include references to original document sections for verification.
 
-5. **Answer Generation:**  
-   The retrieved context, recent chat history, and your question are combined into a prompt. This is sent to the **OpenAI GPT-4o-mini** model, which generates a helpful, context-aware answer.
+- **Responsive & User-Friendly UI**  
+  Modern, mobile-responsive interface with real-time status updates, loading indicators, and intuitive navigation.
 
 ---
 
-## Quick Start
+## 🏗️ Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                CLIENT (React + Vite)                        │
+│ ┌───────────────┐ ┌───────────────┐ ┌─────────────────┐ ┌───────────────┐   │
+│ │ Upload Module │ │ Chat Module   │ │ Document List   │ │ User Profile  │   │
+│ └───────────────┘ └───────────────┘ └─────────────────┘ └───────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                │ HTTP/REST API Calls
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            BACKEND API (FastAPI)                            │
+│ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐     │
+│ │ Upload API    │ │ Chat API      │ │ Document API  │ │Status & health|     |
+| |               | |               | |               | |      API      │     │
+│ └───────────────┘ └───────────────┘ └───────────────┘ └───────────────┘     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                │ Business Logic & Processing
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         Processing & Storage Layer                          │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐ │
+│ │ PDF Extractor   │ │ Text Chunker    │ │ Embedding Gen.  │ │ Vector DB   │ │
+│ │    (PyPDF)      │ │ (LangChain)     │ │ (OpenAI API)    │ │ (InMemory)  │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                │
+                        External AI Services
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         OpenAI GPT & Embedding APIs                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🧩 Core Components Breakdown
+
+### Frontend (React.js)
+- Modular components for uploading PDFs, viewing document list, status of Agent, and engaging in chat conversations.
+
+### Backend (FastAPI)
+- RESTful endpoints using FastAPI for file uploads, question queries, document management, with business logic for processing.
+
+### Processing Layer
+- Uses PyPDF for text extraction, LangChain for chunking, and OpenAI APIs for embeddings and language modeling.
+
+### Storage Layer
+- Stores uploaded files locally, maintains in-memory vector stores for fast retrieval, and optionally persists metadata.
+
+---
+
+## 🔧 Implementation Details
 
 ### Backend
-
-1. **Setup**
-   ```sh
-   cd server
-   python -m venv venv
-   venv\Scripts\activate  # On Windows
-   pip install -r requirements.txt
-   ```
-
-2. **Configure**
-   - Create a `.env` file in `server/`:
-     ```
-     OPENAI_API_KEY=your_openai_api_key_here
-     PORT=8000
-     HOST=0.0.0.0
-     PDFS_DIRECTORY=pdfs
-     ```
-
-3. **Run**
-   ```sh
-   uvicorn main:app --reload
-   ```
+- **Framework:** FastAPI (Python 3.8+)
+- **PDF Processing:** PyPDF extracts text from PDFs.
+- **Text Chunking:** LangChain's RecursiveCharacterTextSplitter splits large texts into manageable chunks.
+- **Embeddings & Search:** OpenAI's `text-embedding-3-large` generates vectors;        In-memory vector store performs similarity search.
+- **Question Answering:** GPT-4o-mini (via OpenAI API) processes retrieved context and conversation history to generate responses.
 
 ### Frontend
-
-1. **Setup**
-   ```sh
-   cd client
-   npm install
-   ```
-
-2. **Configure**
-   - Create a `.env` file in `client/`:
-     ```
-     VITE_API_BASE_URL=http://localhost:8000
-     ```
-
-3. **Run**
-   ```sh
-   npm run dev
-   ```
+- **Framework:** React.js (v18+) (Vite)
+- **Features:** Drag-and-drop PDF upload, document list, chat interface with message history, real-time updates.
+- **Styling:** Responsive CSS with modern UI/UX principles, inspired by Figma design.
 
 ---
 
-## Usage
+## 📝 Setup & Deployment
 
-- Open [http://localhost:3000](http://localhost:3000) (or use the [live demo](https://ai-planet-chat.onrender.com/)).
-- Upload one or more PDF files.
-- Ask questions about the content—get instant, AI-generated answers.
-- Reset to clear all PDFs and chat history.
+### Backend Setup
+
+```bash
+# Clone repo and navigate
+git clone https://github.com/AKSHAY-CHOWDARY/AI_PLANET_
+cd AI_PLANET_/server
+
+# Create virtual environment
+python -m venv venv
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables (.env)
+OPENAI_API_KEY=your_openai_api_key
+
+# Run backend server
+uvicorn app.main:app --reload
+```
+
+### Frontend Setup
+
+```bash
+# Navigate to client directory
+cd ../client
+
+# Install dependencies
+npm install
+
+# Set environment variable
+# Create .env file with:
+# VITE_API_BASE_URL=http://localhost:8000
+
+# Start development server
+npm run dev
+```
+
+### Access the Application
+
+- **Frontend:** http://localhost:3000  
+- **Backend API Docs:** http://localhost:8000/docs
 
 ---
 
-## Deployment
+## 🛠️ Features & Enhancements
 
-- **Live Demo:**  
-  [https://ai-planet-chat.onrender.com/](https://ai-planet-chat.onrender.com/)
-
-- **Self-Hosting:**  
-  Deploy the backend (FastAPI) and frontend (React) on any cloud or server.  
-  The backend supports serverless deployment (e.g., Vercel) and Docker.
+- **Multi-Document Support:** Upload and manage multiple PDFs simultaneously.
+- **Contextual Chat:** Maintains conversation history for coherent Q&A.
+- **Source References:** Responses include document snippets for transparency.
+- **Progress Indicators:** Visual feedback during uploads and processing.
+- **Error Handling:** Clear messages for unsupported files or errors.
+- **Responsive Design:** Works seamlessly on desktops and mobiles.
 
 ---
 
-## Contributing
+## 🔒 Security & Privacy
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes
-4. Push to your branch
-5. Create a Pull Request
+- **API Keys:** Stored securely in environment variables.
+- **File Validation:** Only PDFs allowed; size limits enforced.
+- **Data Handling:** Files stored locally; conversation data session-based.
 
 ---
