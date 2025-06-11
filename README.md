@@ -1,5 +1,7 @@
 # 🚀 AI Planet - Interactive PDF Chat Application
 
+**[🌐 Live Demo → https://ai-planet-chat.onrender.com/](https://ai-planet-chat.onrender.com/)**
+
 Transform your static PDF documents into dynamic conversational experiences with AI-powered question-answering!
 
 ---
