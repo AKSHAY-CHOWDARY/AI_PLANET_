@@ -8,7 +8,7 @@ const TypingIndicator = () => {
   return (
     <div className="flex items-start gap-4">
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-        <img src='../public/ai_planet_icon.png' alt='logo' className='rounded-full bg-white w-30 h-50'></img>
+        <img src='/ai_planet_icon.png' alt='logo' className='rounded-full bg-white w-30 h-50'></img>
       </div>
       <div className="max-w-[80%] md:max-w-[70%] rounded-lg p-4 bg-muted">
         <div className="flex space-x-2">
@@ -97,7 +97,7 @@ export default function ChatArea({ messages, onSendMessage, isLoading }) {
           >
             {message.role === 'assistant' && (
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <img src='../public/ai_planet_icon.png' alt='logo' className='rounded-full bg-white w-30 h-50'></img>
+                <img src='/ai_planet_icon.png' alt='logo' className='rounded-full bg-white w-30 h-50'></img>
               </div>
             )}
             <div

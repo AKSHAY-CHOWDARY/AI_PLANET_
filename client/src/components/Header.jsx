@@ -43,7 +43,7 @@ export default function Header({ theme, onThemeToggle, onUploadClick, onResetCli
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Status - Always visible */}
           <div className="flex items-center gap-4">
-            <img src='../public/logo.png' alt='logo' className='px-2 py-1 bg-white w-30 h-50'></img>
+            <img src='/logo.png' alt='logo' className='px-2 py-1 bg-white w-30 h-50'></img>
             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
               <span className={`h-2 w-2 rounded-full ${status.serverStatus === 'Online' ? 'bg-green-500' : 'bg-red-500'}`} />
               <span>{status.serverStatus}</span>
