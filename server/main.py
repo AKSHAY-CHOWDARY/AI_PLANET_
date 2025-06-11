@@ -11,9 +11,19 @@ import logging
 from google.cloud import speech
 import base64
 from dotenv import load_dotenv
+import os, base64
+
 
 # Load environment variables
 load_dotenv()
+
+
+creds_b64 = os.getenv("GOOGLE_CREDENTIALS_B64")
+if creds_b64:
+    with open("google-credentials.json", "wb") as f:
+        f.write(base64.b64decode(creds_b64))
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google-credentials.json"
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
