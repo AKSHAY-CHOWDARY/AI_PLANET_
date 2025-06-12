@@ -6,6 +6,7 @@ import { checkHealth, getStatus, uploadPDF, sendChatMessage, resetSystem } from 
 import './index.css';
 
 function App() {
+  
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved || 'dark';
@@ -24,6 +25,8 @@ function App() {
     error: null,
     lastChecked: null,
   });
+
+  const [isServerWakingUp, setIsServerWakingUp] = useState(false);
 
   const [messages, setMessages] = useState(() => {
     const savedMessages = localStorage.getItem('chatMessages');
@@ -51,6 +54,7 @@ function App() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
@@ -70,12 +74,25 @@ function App() {
   const checkSystemStatus = async () => {
     setConnectionStatus((prev) => ({ ...prev, isChecking: true }));
 
+    const wakeUpTimer = setTimeout(() => {
+      setConnectionStatus(prev => {
+        if(prev.isChecking) {
+          setIsServerWakingUp(true);
+        }
+        return prev;
+      });
+    }, 3000);
+
     try {
       const health = await checkHealth();
       const isHealthy = health.status === 'healthy';
 
       const status = await getStatus();
       const isOnline = status.status === 'running';
+
+      if (isHealthy && isOnline) {
+        setIsServerWakingUp(false);
+      }
 
       setConnectionStatus({
         isConnected: isHealthy && isOnline,
@@ -135,6 +152,8 @@ function App() {
           },
         ]);
       }
+    } finally {
+      clearTimeout(wakeUpTimer);
     }
   };
 
@@ -157,6 +176,9 @@ function App() {
       return;
     }
 
+    setIsUploading(true);
+    setShowUploadModal(false);
+
     try {
       const result = await uploadPDF(file);
       if (result.status === 'success') {
@@ -174,8 +196,6 @@ function App() {
             timestamp: new Date(),
           },
         ]);
-
-        setShowUploadModal(false);
       }
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -187,6 +207,8 @@ function App() {
           timestamp: new Date(),
         },
       ]);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -299,11 +321,14 @@ function App() {
         onThemeToggle={toggleTheme}
         onUploadClick={() => setShowUploadModal(true)}
         onResetClick={handleResetSystem}
+        systemStatus={systemStatus}
+        isServerWakingUp={isServerWakingUp}
       />
       <ChatArea
         messages={messages}
         onSendMessage={handleSendMessage}
         isLoading={isLoading}
+        isUploading={isUploading}
       />
       <UploadModal
         isOpen={showUploadModal}

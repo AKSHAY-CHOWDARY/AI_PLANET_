@@ -1,57 +1,29 @@
 import { Moon, Sun, Upload, Trash2, Menu, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { getStatus } from '../api';
+import { useState } from 'react';
 
-export default function Header({ theme, onThemeToggle, onUploadClick, onResetClick }) {
-  const [status, setStatus] = useState({
-    serverStatus: 'Checking...',
-    ragAgentStatus: false,
-    documentsLoaded: 0,
-    pdfsDirectory: '',
-  });
-
+export default function Header({ theme, onThemeToggle, onUploadClick, onResetClick, systemStatus, isServerWakingUp }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const result = await getStatus();
-        setStatus({
-          serverStatus: result.status === 'running' ? 'Online' : 'Offline',
-          ragAgentStatus: result.rag_agent_ready,
-          documentsLoaded: result.documents_loaded || 0,
-          pdfsDirectory: result.pdfs_directory || '',
-        });
-      } catch (error) {
-        console.error('Error checking status:', error);
-        setStatus(prev => ({
-          ...prev,
-          serverStatus: 'Offline',
-          ragAgentStatus: false,
-        }));
-      }
-    };
-
-    checkStatus();
-    const interval = setInterval(checkStatus, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <header className="border-b bg-background sticky top-0 z-50">
+      {isServerWakingUp && (
+        <div className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 text-center py-1 text-sm animate-pulse">
+          Server is waking up, please wait a moment...
+        </div>
+      )}
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Status - Always visible */}
           <div className="flex items-center gap-4">
             <img src='/logo.png' alt='logo' className='px-2 py-1 bg-white w-30 h-50'></img>
             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-              <span className={`h-2 w-2 rounded-full ${status.serverStatus === 'Online' ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span>{status.serverStatus}</span>
+              <span className={`h-2 w-2 rounded-full ${systemStatus.serverStatus === 'Online' ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span>{systemStatus.serverStatus}</span>
               <span>•</span>
-              <span className={`h-2 w-2 rounded-full ${status.ragAgentStatus ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span>RAG Agent {status.ragAgentStatus ? 'Ready' : 'Not Ready'}</span>
+              <span className={`h-2 w-2 rounded-full ${systemStatus.ragAgentStatus ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span>RAG Agent {systemStatus.ragAgentStatus ? 'Ready' : 'Not Ready'}</span>
               <span>•</span>
-              <span>{status.documentsLoaded} documents loaded</span>
+              <span>{systemStatus.documentsLoaded} documents loaded</span>
             </div>
           </div>
 
@@ -88,13 +60,13 @@ export default function Header({ theme, onThemeToggle, onUploadClick, onResetCli
         <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} py-4 border-t`}>
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className={`h-2 w-2 rounded-full ${status.serverStatus === 'Online' ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span>{status.serverStatus}</span>
+              <span className={`h-2 w-2 rounded-full ${systemStatus.serverStatus === 'Online' ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span>{systemStatus.serverStatus}</span>
               <span>•</span>
-              <span className={`h-2 w-2 rounded-full ${status.ragAgentStatus ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span>RAG Agent {status.ragAgentStatus ? 'Ready' : 'Not Ready'}</span>
+              <span className={`h-2 w-2 rounded-full ${systemStatus.ragAgentStatus ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span>RAG Agent {systemStatus.ragAgentStatus ? 'Ready' : 'Not Ready'}</span>
               <span>•</span>
-              <span>{status.documentsLoaded} documents loaded</span>
+              <span>{systemStatus.documentsLoaded} documents loaded</span>
             </div>
             <div className="flex flex-col gap-2">
               <button

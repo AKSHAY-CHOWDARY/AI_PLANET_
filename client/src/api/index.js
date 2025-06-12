@@ -101,37 +101,3 @@ export const resetSystem = async () => {
     throw error;
   }
 };
-
-export const speechToText = async (audioBlob) => {
-  try {
-    // Convert audio blob to base64
-    const reader = new FileReader();
-    const base64Promise = new Promise((resolve, reject) => {
-      reader.onload = () => {
-        const base64 = reader.result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-    });
-    reader.readAsDataURL(audioBlob);
-    const base64Audio = await base64Promise;
-
-    const response = await fetch(`${API_BASE_URL}/speech-to-text`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ audio_data: base64Audio }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to process speech');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Speech-to-text failed:', error);
-    throw error;
-  }
-}; 
